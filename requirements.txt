@@ -1,0 +1,29 @@
+# LLM / API
+openai
+groq
+
+# LangChain
+langchain
+langchain-core
+langchain-community
+langchain-groq
+langchain-text-splitters
+
+# LangSmith
+langsmith
+
+# Hugging Face embeddings
+langchain-huggingface
+sentence-transformers
+
+# Document loading / HTML parsing
+beautifulsoup4
+
+# Tokenization
+tiktoken
+
+# Environment variables
+python-dotenv
+
+# Typing
+typing-extensions
