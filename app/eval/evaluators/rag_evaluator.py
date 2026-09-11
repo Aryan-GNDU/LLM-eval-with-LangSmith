@@ -1,8 +1,8 @@
 from typing_extensions import Annotated, TypedDict
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
-from app.eval.rag_pipeline import rag_bot
-from app.eval.instructions import (
+from app.rag.rag_pipeline import rag_bot
+from app.eval.evaluators.instructions import (
     correctness_instructions,
     relevance_instructions,
     grounded_instructions,

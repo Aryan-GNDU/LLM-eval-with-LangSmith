@@ -4,6 +4,8 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
+from langchain_classic.retrievers import ContextualCompressionRetriever
+from langchain_community.document_compressors import FlashrankRerank
 from langsmith import traceable
 from dotenv import load_dotenv
 
@@ -51,8 +53,19 @@ def create_vectorstore(doc_splits):
 
 def create_retriever(vectorstore):
     return vectorstore.as_retriever(
-        search_kwargs={"k": 6}
+        search_kwargs={"k": 5}
     )
+
+def create_reranked_retriever(retriever):
+    reranker = FlashrankRerank(
+        top_n=3
+    )
+
+    return ContextualCompressionRetriever(
+        base_compressor=reranker,
+        base_retriever=retriever,
+    )
+
 
 llm = ChatGroq(
     model="openai/gpt-oss-20b",
@@ -108,13 +121,13 @@ doc_splits = split_documents(docs)
 
 vectorstore = create_vectorstore(doc_splits)
 
-retriever = create_retriever(vectorstore)
-
+base_retriever = create_retriever(vectorstore)
+retriever = create_reranked_retriever(base_retriever)
 
 
 if __name__ == "__main__":
     result = rag_bot(
-        "What is prompt engineering?"
+        "What is the share price of NVIDIA?"
     )
 
     print("\nANSWER:")
