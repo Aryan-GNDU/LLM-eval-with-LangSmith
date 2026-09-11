@@ -44,6 +44,7 @@ RETRIEVAL_GROUND_TRUTH = {
     ],
 
     "What are five types of adversarial attacks?": [
+        "chunk_0106",
         "chunk_0113",
     ],
 }
@@ -59,4 +60,3 @@ if __name__ == "__main__":
         dataset_id=dataset.id,
         examples=examples,
     )
-    
