@@ -4,6 +4,8 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
+from langchain_classic.retrievers import ContextualCompressionRetriever
+from langchain_community.document_compressors import FlashrankRerank
 from langsmith import traceable
 from dotenv import load_dotenv
 
@@ -34,7 +36,13 @@ def split_documents(docs):
         chunk_overlap=0,
     )
 
-    return text_splitter.split_documents(docs)
+    doc_splits = text_splitter.split_documents(docs)
+
+    for index, doc in enumerate(doc_splits):
+        doc.metadata["chunk_id"] = f"chunk_{index:04d}"
+
+    return doc_splits
+
 
 def create_vectorstore(doc_splits):
     embeddings = HuggingFaceEmbeddings(
@@ -51,8 +59,19 @@ def create_vectorstore(doc_splits):
 
 def create_retriever(vectorstore):
     return vectorstore.as_retriever(
-        search_kwargs={"k": 6}
+        search_kwargs={"k": 5}
     )
+
+def create_reranked_retriever(retriever):
+    reranker = FlashrankRerank(
+        top_n=3
+    )
+
+    return ContextualCompressionRetriever(
+        base_compressor=reranker,
+        base_retriever=retriever,
+    )
+
 
 llm = ChatGroq(
     model="openai/gpt-oss-20b",
@@ -108,20 +127,51 @@ doc_splits = split_documents(docs)
 
 vectorstore = create_vectorstore(doc_splits)
 
-retriever = create_retriever(vectorstore)
+base_retriever = create_retriever(vectorstore)
+retriever = create_reranked_retriever(base_retriever)
 
+
+# if __name__ == "__main__":
+#     result = rag_bot(
+#         "What are five types of adversarial attacks?"
+#     )
+
+#     print("\nANSWER:")
+#     print(result["answer"])
+
+#     print("\nRETRIEVED DOCUMENTS:")
+
+#     for i, document in enumerate(result["documents"], start=1):
+#         print(f"\n--- Document {i} ---")
+#         print("Chunk ID:", document.metadata.get("chunk_id"))
+#         print("Source:", document.metadata.get("source"))
+#         print(document.page_content[:500])
 
 
 if __name__ == "__main__":
-    result = rag_bot(
-        "What is prompt engineering?"
-    )
+    keywords = [
+        "Majority label bias",
+        "Recency bias",
+        "Common token bias",
+        "Token Manipulation",
+        "Gradient based Attacks",
+        "Jailbreak Prompting",
+        "Human red-teaming",
+        "Model red-teaming",
+    ]
 
-    print("\nANSWER:")
-    print(result["answer"])
+    for keyword in keywords:
+        print(f"\n{'=' * 80}")
+        print(f"SEARCHING: {keyword}")
+        print(f"{'=' * 80}")
 
-    print("\nRETRIEVED DOCUMENTS:")
+        matches = [
+            doc
+            for doc in doc_splits
+            if keyword.lower() in doc.page_content.lower()
+        ]
 
-    for i, document in enumerate(result["documents"], start=1):
-        print(f"\n--- Document {i} ---")
-        print(document.page_content[:500])
+        for doc in matches:
+            print("\nChunk ID:", doc.metadata.get("chunk_id"))
+            print("Source:", doc.metadata.get("source"))
+            print(doc.page_content)

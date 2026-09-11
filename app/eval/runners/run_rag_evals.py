@@ -1,8 +1,8 @@
 from dotenv import load_dotenv
 from langsmith import Client
 
-from app.eval.rag_pipeline import rag_bot
-from app.eval.rag_evaluator import (
+from app.rag.rag_pipeline import rag_bot
+from app.eval.evaluators.rag_evaluator import (
     correctness,
     relevance,
     groundedness,

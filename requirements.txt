@@ -27,3 +27,6 @@ python-dotenv
 
 # Typing
 typing-extensions
+
+
+flashrank==0.2.10

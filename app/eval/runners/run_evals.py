@@ -2,7 +2,7 @@ from openai import OpenAI
 from langsmith import Client
 from app.constants.environ import GROQ_API_KEY
 
-from app.eval.llm_as_judge import correctness, concision
+from app.eval.evaluators.llm_as_judge import correctness, concision
 
 
 openai_client = OpenAI(
